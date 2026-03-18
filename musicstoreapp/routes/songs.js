@@ -1,12 +1,34 @@
-module.exports = function(app) {
+module.exports = function(app,twig) {
     app.get("/songs", function(req, res) {
-        let response = "";
-        if(req.query.title!=null && typeof(req.query.title) != "undefined")
-            response = 'Titulo:' + req.query.title + '<br>';
-        if(req.query.author!=null && typeof(req.query.author) != "undefined")
-            response+= 'Autor:' + req.query.author;
+        let songs=[{
+            "title" : "Blank space",
+            "price" : "1.2"
+        }, {
+            "title": "See you again",
+            "price": "1.3"
+        },{
+            "title" : "Uptown Funk",
+            "price" : "1.1"
+        }];
 
-        res.send(response);
+        let response = {
+            seller: 'Tienda de canciones',
+            songs:songs
+        }
+
+        res.render("shop.twig", response);
+
+        // let response = "";
+        // if(req.query.title!=null && typeof(req.query.title) != "undefined")
+        //     response = 'Titulo:' + req.query.title + '<br>';
+        // if(req.query.author!=null && typeof(req.query.author) != "undefined")
+        //     response+= 'Autor:' + req.query.author;
+        //
+        // res.send(response);
+    });
+
+    app.get('/songs/add', function (req, res) {
+        res.render("add.twig");
     });
 
     app.get('/add', function(req, res) {
@@ -16,8 +38,8 @@ module.exports = function(app) {
 
     app.post('/songs/add', function (req,res){
         let response = "Canción agregada:" + req.body.title + "<br>"
-        + "genero" + req.body.kind + "<br>"
-        + "precio" + req.body.price
+            + "genero:" + req.body.kind + "<br>"
+            + "precio:" + req.body.price
 
         res.send(response);
     });
