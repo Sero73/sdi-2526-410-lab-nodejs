@@ -20,6 +20,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 require("./routes/songs")(app);
+require("./routes/authors")(app);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
