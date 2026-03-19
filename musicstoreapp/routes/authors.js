@@ -1,36 +1,42 @@
 module.exports = function(app){
+    let authors=[{
+        "name" : "Candice Night",
+        "group" : "Blackmore's Night",
+        "role" : "Cantante"
+    },{
+        "name" : "Charlie Parker",
+        "group" : "The Quintet",
+        "role" : "Saxofonista"
+    },{
+        "name" : "Frédéric Chopin",
+        "group" : "Solista",
+        "role" : "Pianista"
+    },{
+        "name" : " Hilary Hahn",
+        "group" : "Solista",
+        "role" : "Violinista"
+    },{
+        "name" : "Louis Armstrong",
+        "group" : "Louis Armstrong and his Hot Five",
+        "role" : "Trompetista"
+    },{
+        "name" : "jonathan Davis",
+        "group" : "Korn",
+        "role" : "Cantante"
+    }];
     app.get('/authors', function (req,res){
-        let authors=[{
-            "name" : "Candice Night",
-            "group" : "Cantante",
-            "role" : "Blackmore's Night"
-        },{
-            "name" : "Charlie Parker",
-            "group" : "The Quintet",
-            "role" : "Saxofonista"
-        },{
-            "name" : "Frédéric Chopin",
-            "group" : "Solista",
-            "role" : "Pianista"
-        },{
-            "name" : " Hilary Hahn",
-            "group" : "Solista",
-            "role" : "Violinista"
-        },{
-            "name" : "Louis Armstrong",
-            "group" : "Louis Armstrong and his Hot Five",
-            "role" : "Trompetista"
-        },{
-            "name" : "jonathan Davis",
-            "group" : "Korn",
-            "role" : "Cantante"
-        }];
-
         let response={
             authors: authors
         };
         res.render('authors/authors.twig', response)
     });
+
+    app.get('/authors/filter/:role', function (req, res) {
+        let response = {
+            authors: authors.filter(a => a.role.toLowerCase() === req.params.role.toLowerCase())
+        };
+        res.render('authors/authors.twig', response);
+    })
 
     app.get('/authors/add', function (req,res){
         let roles = ["Cantante", "Trompetista", "Violinista", "Saxofonista", "Pianista"];
