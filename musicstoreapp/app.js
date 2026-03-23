@@ -9,6 +9,7 @@ let usersRouter = require('./routes/users');
 
 let app = express();
 
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'twig');
@@ -19,7 +20,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-require("./routes/songs")(app);
+const { MongoClient } = require("mongodb");
+const connectionStrings = 'mongodb+srv://admin:sdi@musicstoreapp.tydlruc.mongodb.net/?appName=musicstoreapp';
+const dbClient = new MongoClient(connectionStrings);
+//app.set('connectionStrings', url);
+require("./routes/songs.js")(app, dbClient);
 require("./routes/authors")(app);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
