@@ -18,17 +18,13 @@ module.exports = function(app,songsRepository) {
         }
 
         res.render("shop.twig", response);
-
-        // let response = "";
-        // if(req.query.title!=null && typeof(req.query.title) != "undefined")
-        //     response = 'Titulo:' + req.query.title + '<br>';
-        // if(req.query.author!=null && typeof(req.query.author) != "undefined")
-        //     response+= 'Autor:' + req.query.author;
-        //
-        // res.send(response);
     });
 
     app.get('/songs/add', function (req, res) {
+        if(req.session.user == null) {
+            res.redirect("/shop");
+            return;
+        }
         res.render("songs/add.twig");
     });
 
@@ -38,10 +34,15 @@ module.exports = function(app,songsRepository) {
     });
 
     app.post('/songs/add', function (req,res){
+        if(req.session.user == null) {
+            res.redirect("/shop");
+            return;
+        }
         let song = {
             title: req.body.title,
             kind: req.body.kind,
-            price: req.body.price
+            price: req.body.price,
+            author: req.session.user
         }
         songsRepository.insertSong(song,function (result){
             if(result.songId !== null && result.songId!==undefined){
