@@ -4,10 +4,7 @@ let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 
-
-
 let indexRouter = require('./routes/index');
-
 
 let app = express();
 
@@ -24,6 +21,7 @@ const userSessionRouter = require('./routes/userSessionRouter');
 const userAudiosRouter = require('./routes/userAudiosRouter');
 app.use("/songs/add",userSessionRouter);
 app.use("/publications",userSessionRouter);
+app.use("/songs/favorites",userSessionRouter);
 app.use("/audios/",userAudiosRouter);
 app.use("/shop/",userSessionRouter)
 
@@ -53,16 +51,17 @@ const dbClient = new MongoClient(connectionStrings);
 
 const usersRepository = require("./repositories/usersRepository.js");
 let songsRepository = require("./repositories/songsRepository.js");
+let favoriteSongsRepository = require("./repositories/favoriteSongsRepository.js");
 
+favoriteSongsRepository.init(app,dbClient);
 usersRepository.init(app, dbClient);
 songsRepository.init(app, dbClient);
+require("./routes/favorites")(app, favoriteSongsRepository, songsRepository);
 require("./routes/users.js")(app, usersRepository);
 require("./routes/songs.js")(app, songsRepository);
 //app.set('connectionStrings', url);
 require("./routes/authors")(app);
 app.use('/', indexRouter);
-
-
 
 
 // catch 404 and forward to error handler

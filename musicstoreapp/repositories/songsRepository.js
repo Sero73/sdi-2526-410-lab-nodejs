@@ -16,8 +16,6 @@ module.exports = {
         }catch (error){
             console.error()
         }
-
-
     },getSongs: async function (filter, options) {
         try {
             await this.dbClient.connect();
