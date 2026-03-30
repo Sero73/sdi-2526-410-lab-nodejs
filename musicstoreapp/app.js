@@ -8,6 +8,14 @@ let indexRouter = require('./routes/index');
 
 let app = express();
 
+let crypto = require('crypto');
+
+let fileUpload = require('express-fileupload');
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+  createParentPath: true
+}));
+
 let expressSession = require('express-session');
 app.use(expressSession({
   secret: 'abcdefg',
@@ -15,21 +23,14 @@ app.use(expressSession({
   saveUninitialized: true
 }));
 
-let crypto = require('crypto');
-
 const userSessionRouter = require('./routes/userSessionRouter');
 const userAudiosRouter = require('./routes/userAudiosRouter');
 app.use("/songs/add",userSessionRouter);
 app.use("/publications",userSessionRouter);
+app.use("/shop/",userSessionRouter)
 app.use("/songs/favorites",userSessionRouter);
 app.use("/audios/",userAudiosRouter);
-app.use("/shop/",userSessionRouter)
 
-let fileUpload = require('express-fileupload');
-app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 },
-  createParentPath: true
-}));
 app.set('uploadPath', __dirname)
 app.set('clave','abcdefg');
 app.set('crypto',crypto);
@@ -52,16 +53,20 @@ const dbClient = new MongoClient(connectionStrings);
 const usersRepository = require("./repositories/usersRepository.js");
 let songsRepository = require("./repositories/songsRepository.js");
 let favoriteSongsRepository = require("./repositories/favoriteSongsRepository.js");
+let commentsRepository = require("./repositories/commentsRepository.js");
 
 favoriteSongsRepository.init(app,dbClient);
-usersRepository.init(app, dbClient);
 songsRepository.init(app, dbClient);
+commentsRepository.init(app,dbClient);
+usersRepository.init(app, dbClient);
 require("./routes/favorites")(app, favoriteSongsRepository, songsRepository);
+require("./routes/songs.js")(app, songsRepository, commentsRepository);
+app.use('/', indexRouter);
 require("./routes/users.js")(app, usersRepository);
-require("./routes/songs.js")(app, songsRepository);
+require("./routes/comments.js")(app,commentsRepository);
 //app.set('connectionStrings', url);
 require("./routes/authors")(app);
-app.use('/', indexRouter);
+
 
 
 // catch 404 and forward to error handler
