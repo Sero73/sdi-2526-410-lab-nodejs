@@ -22,6 +22,28 @@ module.exports = function(app,commentsRepository) {
             }else{
                 res.send("No hay ningún usuario en sesión")
             }
+    });
 
+    app.get('/comments/delete/:comment_id', async function (req, res) {
+        console.log("Parámetros recibidos:", req.params); // Mira esto en la consola de IntelliJ
+        let commentId = req.params.comment_id;
+        let filter = {
+            _id: new ObjectId(commentId),
+            author: req.session.user
+        };
+
+        commentsRepository.findComment(filter, {}).then(comment => {
+            if (comment != null) {
+                commentsRepository.deleteComment(filter, {}).then(() => {
+                    res.redirect("/songs/" + comment.song_id);
+                }).catch(error => {
+                    res.send("Error al ejecutar el borrado: " + error);
+                });
+            } else {
+                res.send("Este comentario no es tuyo.");
+            }
+        }).catch(error =>{
+            res.send("Se ha producido un error buscando el comentario " + error);
+        });
     });
 };
