@@ -24,11 +24,14 @@ app.use(expressSession({
 }));
 
 const userSessionRouter = require('./routes/userSessionRouter');
+const userAuthorRouter = require('./routes/userAuthorRouter');
 const userAudiosRouter = require('./routes/userAudiosRouter');
 app.use("/songs/add",userSessionRouter);
 app.use("/publications",userSessionRouter);
 app.use("/shop/",userSessionRouter)
 app.use("/songs/favorites",userSessionRouter);
+app.use("/songs/edit",userAuthorRouter);
+app.use("/songs/delete",userAuthorRouter);
 app.use("/audios/",userAudiosRouter);
 
 app.set('uploadPath', __dirname)
