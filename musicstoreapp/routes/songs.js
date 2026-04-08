@@ -70,14 +70,14 @@ module.exports = function(app,songsRepository, commentsRepository) {
         songsRepository.findSong(songFilter, options).then(song => {
             let commentsFilter = { song_id: new ObjectId(songId) };
             commentsRepository.getComments(commentsFilter,{}).then(comments => {
-                let response ={
-                    song:song,
-                    comments:comments
-                }
-                res.render("songs/song.twig", response);
-            }).catch(error =>{
-                res.send("Se ha producido un error recuperando los comentarios: " + error);
-            })
+                canBuySong(songFilter._id, req.session.user).then(result => {
+                    res.render("songs/song.twig", {song: song, comments: comments, canBuy: result});
+                }).catch(error => {
+                    res.send("Se ha producido un error al comprobar si se puede comprar la canción: " + error)
+                });
+                }).catch(error =>{
+                    res.send("Se ha producido un error recuperando los comentarios: " + error);
+                });
         }).catch(error => {
             res.send("Se ha producido un error al buscar la canción " + error)
         });
@@ -111,15 +111,23 @@ module.exports = function(app,songsRepository, commentsRepository) {
             user: req.session.user,
             song_id: songId
         }
-        songsRepository.buySong(shop).then(result => {
-            if (result.insertedId === null || typeof (result.insertedId) === undefined) {
-                res.send("Se ha producido un error al comprar la canción")
-            } else {
-                res.redirect("/purchases");
+        canBuySong(shop.song_id, req.session.user).then(result => {
+            if(!result){
+                res.send("No se puede comprar la canción");
+            }else {
+                songsRepository.buySong(shop).then(result => {
+                    if (result.insertedId === null || typeof (result.insertedId) === undefined) {
+                        res.send("Se ha producido un error al comprar la canción")
+                    } else {
+                        res.redirect("/purchases");
+                    }
+                }).catch(error => {
+                    res.send("Se ha producido un error al comprar la canción " + error);
+                });
             }
         }).catch(error => {
             res.send("Se ha producido un error al comprar la canción " + error)
-        })
+        });
     });
 
     app.get('/purchases', function (req, res) {
@@ -248,6 +256,27 @@ module.exports = function(app,songsRepository, commentsRepository) {
             callback(true); // FIN
         }
     };
+
+    async function canBuySong(id, user) {
+        try {
+            let filter = {author: user, _id: id};
+            let songs = await songsRepository.getSongs(filter, {});
+            if (songs.length > 0) {
+                return false
+            }
+            filter = {user: user, song_id: id};
+            let options = {projection: {_id: 0, song_id: 1}};
+
+            const purchasedIds = await songsRepository.getPurchases(filter, options);
+            if (purchasedIds.length > 0) {
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.log(error);
+        }
+    }
 };
 
 
