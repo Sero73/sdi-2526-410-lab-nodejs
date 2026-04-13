@@ -1,11 +1,10 @@
 {% extends 'layout.twig' %}
 
 {% block main_container %}
-{#Al pasar los parámetros por URL aprovechamos el metodo de layout que lo muestra#}
-{#<div class="container">#}
-{#    <div class="alert {{ messageType }}">#}
-{#        <h1>Error</h1>#}
-{#        <p>{{ message }}</p>#}
-{#    </div>#}
-{#</div>#}
+<div class="container">
+    <div class="alert {{ messageType }}">
+        <h1>Error</h1>
+        <p>{{ message }}</p>
+    </div>
+</div>
 {% endblock %}
