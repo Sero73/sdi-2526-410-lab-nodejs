@@ -63,25 +63,64 @@ module.exports = function(app,songsRepository, commentsRepository) {
         });
     });
 
-    app.get('/songs/:id', function (req, res) {
+    app.get('/songs/:id', function (req, res, next) {
         let songId = req.params.id;
         let songFilter = {_id: new ObjectId(songId)};
         let options = {};
         songsRepository.findSong(songFilter, options).then(song => {
+            if(song == null){
+                let error = new Error("No se ha encontrado la canción");
+                error.messageType = "alert-danger";
+                throw error;
+            }
             let commentsFilter = { song_id: new ObjectId(songId) };
             commentsRepository.getComments(commentsFilter,{}).then(comments => {
                 canBuySong(songFilter._id, req.session.user).then(result => {
                     res.render("songs/song.twig", {song: song, comments: comments, canBuy: result});
                 }).catch(error => {
-                    res.send("Se ha producido un error al comprobar si se puede comprar la canción: " + error)
+                    //res.send("Se ha producido un error al comprobar si se puede comprar la canción: " + error);
+                    let err = new Error("Se ha producido un error al comprobar si se puede comprar la canción: " + error);
+                    err.messageType = "alert-danger";
+                    next(err);
                 });
                 }).catch(error =>{
-                    res.send("Se ha producido un error recuperando los comentarios: " + error);
+                    //res.send("Se ha producido un error recuperando los comentarios: " + error);
+                    let err = new Error("Se ha producido un error recuperando los comentarios: " + error);
+                    err.messageType = "alert-danger";
+                    next(err);
                 });
         }).catch(error => {
-            res.send("Se ha producido un error al buscar la canción " + error)
+           // res.send("Se ha producido un error al buscar la canción " + error)
+            next(error);
         });
     });
+
+    //otra forma con async await
+    // app.get('/songs/:id', async function (req, res, next) {
+    //     try {
+    //         let songId = req.params.id;
+    //         let songFilter = {_id: new ObjectId(songId)};
+    //
+    //         let song = await songsRepository.findSong(songFilter, {});
+    //
+    //         if (song == null) {
+    //             let error = new Error("No se ha encontrado la canción");
+    //             error.messageType = "alert-danger";
+    //             throw error;
+    //         }
+    //
+    //         let commentsFilter = { song_id: new ObjectId(songId) };
+    //         let comments = await commentsRepository.getComments(commentsFilter, {});
+    //
+    //         let result = await canBuySong(songFilter._id, req.session.user);
+    //
+    //         res.render("songs/song.twig", {song: song, comments: comments, canBuy: result});
+    //
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // });
+
 
     app.get('/songs/edit/:id', function (req, res) {
         let filter = {_id: new ObjectId(req.params.id)};
