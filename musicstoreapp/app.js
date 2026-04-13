@@ -68,6 +68,7 @@ require("./routes/users.js")(app, usersRepository);
 require("./routes/comments.js")(app,commentsRepository);
 //app.set('connectionStrings', url);
 require("./routes/authors")(app);
+require("./routes/util.js")(app);
 
 
 

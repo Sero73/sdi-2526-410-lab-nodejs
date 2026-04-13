@@ -33,7 +33,7 @@ module.exports = function(app,favoriteSongsRepository, songsRepository) {
 
                 favoriteSongsRepository.findFavoriteSong(favFilter, {}).then(exists => {
                     if (exists!=null) {
-                        res.send("Esta canción ya está en tu lista de favoritos.");
+                       res.redirect("/error?message=Esta canción ya está en tu lista de favoritos&messageType=alert-info");
                     } else {
                         let favoriteSong = {
                             song_id: song._id,
@@ -76,7 +76,7 @@ module.exports = function(app,favoriteSongsRepository, songsRepository) {
                         res.send("Error al ejecutar el borrado: " + error);
                     });
                 } else {
-                    res.send("Esta canción no esta en tu lista de favoritos.");
+                        res.send("Esta canción no está en tu lista de favoritos.");
                 }
             }).catch(error =>{
                 res.send("Se ha producido un error al buscar la canción en favoritos: " + error);

@@ -40,8 +40,9 @@ module.exports = function(app,commentsRepository) {
                     res.send("Error al ejecutar el borrado: " + error);
                 });
             } else {
-                res.send("Este comentario no es tuyo.");
-            }
+                //Error pasando mensaje por URL
+                res.redirect("/error?message=No puedes borrar un comentario que no es tuyo&messageType=alert-info");
+                }
         }).catch(error =>{
             res.send("Se ha producido un error buscando el comentario " + error);
         });
