@@ -6,7 +6,42 @@ let logger = require('morgan');
 
 let indexRouter = require('./routes/index');
 
+let  swaggerUi = require('swagger-ui-express');
+let  swaggerJsdoc = require('swagger-jsdoc');
+let { Song } = require('./schemas/song.schema');
+let { SongRequest } = require('./schemas/songRequest.schema');
+
+const swaggerOptions = {
+      definition: {
+        openapi: '3.0.0',
+        info: {
+          title: 'API de la tienda de música de SDI',
+          version: '1.0.0',
+          description: 'Documentación interactiva de la API',
+        },components: {
+          schemas: {
+            Song,
+            SongRequest
+          }
+      },
+      servers: [
+        {
+          url: 'http://localhost:<puerto que estés utilizando>',
+          description: 'Servidor de pruebas de la aplicación',
+        },
+      ],
+    },
+    apis: ['./routes/api/*.js'],
+    };
+
+
+
+
+
 let app = express();
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 let rest = require('request');
 app.set('rest', rest);
@@ -87,7 +122,6 @@ require("./routes/comments.js")(app,commentsRepository);
 //app.set('connectionStrings', url);
 require("./routes/authors")(app);
 require("./routes/util.js")(app);
-
 
 
 // catch 404 and forward to error handler
