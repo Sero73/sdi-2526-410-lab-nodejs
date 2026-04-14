@@ -63,6 +63,7 @@ commentsRepository.init(app,dbClient);
 usersRepository.init(app, dbClient);
 require("./routes/favorites")(app, favoriteSongsRepository, songsRepository);
 require("./routes/songs.js")(app, songsRepository, commentsRepository);
+require("./routes/api/songsAPIv1.0.js")(app, songsRepository);
 app.use('/', indexRouter);
 require("./routes/users.js")(app, usersRepository);
 require("./routes/comments.js")(app,commentsRepository);
