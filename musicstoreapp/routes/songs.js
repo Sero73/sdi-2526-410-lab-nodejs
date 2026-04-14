@@ -76,7 +76,20 @@ module.exports = function(app,songsRepository, commentsRepository) {
             let commentsFilter = { song_id: new ObjectId(songId) };
             commentsRepository.getComments(commentsFilter,{}).then(comments => {
                 canBuySong(songFilter._id, req.session.user).then(result => {
-                    res.render("songs/song.twig", {song: song, comments: comments, canBuy: result});
+                    let settings = {
+                        url: "https://api.currencyapi.com/v3/latest?apikey=cur_live_rBONU6NA76uz67BPSrJzaDI3z71038Lp7fwScMnP&base_currency=EUR&currencies=USD",
+                        method: "get",
+                    }
+                    let rest = app.get("rest");
+                    rest(settings, function (error, response, body) {
+                        console.log("cod: " + response.statusCode + " Cuerpo :" + body);
+                        let responseObject = JSON.parse(body);
+                        let rateUSD = responseObject.data.USD.value;
+// nuevo                campo "usd" redondeado a dos decimales
+                        let songValue = song.price / rateUSD
+                        song.usd = Math.round(songValue * 100) / 100;
+                        res.render("songs/song.twig", {song: song, comments: comments, canBuy: result});
+                    })
                 }).catch(error => {
                     //res.send("Se ha producido un error al comprobar si se puede comprar la canción: " + error);
                     let err = new Error("Se ha producido un error al comprobar si se puede comprar la canción: " + error);
