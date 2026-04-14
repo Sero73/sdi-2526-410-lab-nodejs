@@ -22,6 +22,7 @@
 
   <script>
     $("#boton-login").click(function (){
+      window.history.pushState("", "", "/apiclient/client.html?w=login");
       $.ajax({
         url: URLbase + "/users/login",
         type: "POST",
@@ -32,9 +33,11 @@
         dataType: "json",
         success: function success(response) {
           token = response.token;
+          Cookies.set('token', token);
           $("#main-container").load("widget-songs.html");
         },
         error: function (error) {
+          Cookies.remove('token');
           $("widget-login").prepend("<div class='alert alert-danger'>Usuario no encontrado</div>");
         }
       });
