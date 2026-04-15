@@ -1,4 +1,6 @@
 const {ObjectId} = require("mongodb");
+const {songValidatorInsert} = require("./songValidator");
+const {validationResult} = require("express-validator");
 module.exports = function (app, songsRepository, usersRepository) {
     /**
      * @swagger
@@ -90,19 +92,58 @@ module.exports = function (app, songsRepository, usersRepository) {
         try {
             let songId = new ObjectId(req.params.id)
             let filter = {_id: songId}
-            songsRepository.deleteSong(filter, {}).then(result => {
-                if (result === null || result.deletedCount === 0) {
-                    res.status(404).json({error: "ID inválido o no existe, no se ha borrado el registro."});
-                } else {
-                    res.status(200).send(JSON.stringify(result));
+            validateAuthor(res.user,songId).then(isAuthor => {
+                if(isAuthor){
+                    songsRepository.deleteSong(filter, {}).then(result => {
+                        if (result === null || result.deletedCount === 0) {
+                            res.status(404).json({error: "ID inválido o no existe, no se ha borrado el registro."});
+                        } else {
+                            res.status(200).send(JSON.stringify(result));
+                        }
+                    }).catch(error => {
+                        res.status(500).json({error: "Se ha producido un error:" + error.message})
+                    });
+                }else{
+                    res.status(401).json({error: "Usuario no autorizado para borrar la canción."});
                 }
-            }).catch(error => {
-                res.status(500).json({error: "Se ha producido un error:" + error.message})
-            });
+            })
+
         } catch (error) {
             res.status(500). json({error: error.message})
         }
     });
+
+
+    //Usando validador
+    app.post('/api/v1.0/songs', songValidatorInsert, function (req, res) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(422).json({error: errors.array()});
+            } else {
+                let song = {
+                    title: req.body.title,
+                    kind: req.body.kind,
+                    price: req.body.price,
+                    author: req.res.user
+                }
+
+                songsRepository.insertSong(song, function (songId) {
+                    if (songId === null) {
+                        res.status(409).json({error: "No se ha podido crear la canción. El recurso ya existe."});
+                    } else {
+                        res.status(201).json({
+                            message: "Canción añadida correctamente.",
+                            _id: songId
+                        })
+                    }
+                });
+            }
+        } catch (error) {
+            res.status(500).json({error: "Se ha producido un error al intentar crear la canción: " +
+                    error.message})
+        }
+    }) ;
 
     /**
      * @swagger
@@ -159,14 +200,21 @@ module.exports = function (app, songsRepository, usersRepository) {
                 price: req.body.price,
                 author: req.res.user
             }
-            songsRepository.insertSong(song, function (songId) {
-                if (songId === null) {
-                    res.status(409).json({error: "No se ha podido crear la canción. El recurso ya existe."});
-                } else {
-                    res.status(201).json({
-                        message: "Canción añadida correctamente.",
-                        _id: songId
-                    })
+
+            validateSong(song,function(error){
+                if(error !== null && error.length > 0){
+                    res.status(422).json({error: error});
+            }else {
+                    songsRepository.insertSong(song, function (songId) {
+                        if (songId === null) {
+                            res.status(409).json({error: "No se ha podido crear la canción. El recurso ya existe."});
+                        } else {
+                            res.status(201).json({
+                                message: "Canción añadida correctamente.",
+                                _id: songId
+                            })
+                        }
+                    });
                 }
             });
         } catch (error) {
@@ -281,5 +329,52 @@ module.exports = function (app, songsRepository, usersRepository) {
                 authenticated: false });
         }
     });
+
+    function validateSong(song, callbackFunction){
+        let errors = [];
+        if(!song.title.trim()){
+            errors.push({
+                "value" : song.title,
+                "msg" : "El título no puede estar vacío",
+                "param" : "title",
+                "location" : "body"
+            });
+        }
+
+        if(!song.kind.trim()){
+            errors.push({
+                "value" : song.kind,
+                "msg" : "El género no puede estar vacío",
+                "param" : "kind",
+                "location" : "body"
+            });
+        }
+
+        if(!song.price || Number(song.price)<0){
+            errors.push({
+                "value" : song.price,
+                "msg" : "El precio no puede estar vacío ni ser negativo",
+                "param" : "price",
+                "location" : "body"
+            });
+        }
+
+        if(errors.length === 0){
+            callbackFunction(null);
+        }else {
+            callbackFunction(errors);
+        }
+    }
+
+    async function validateAuthor(user, songId){
+        let filter = {$and: [{"_id" : songId}, {"author" : user}]};
+        let options = {};
+        try{
+            const songs = await songsRepository.getSongs(filter, options);
+            return songs.length>0;
+        }catch (error){
+            return false;
+        }
+    }
 
 }

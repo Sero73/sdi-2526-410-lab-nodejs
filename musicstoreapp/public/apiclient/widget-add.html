@@ -1,4 +1,5 @@
-<div id="widget-agregar" >
+<div id="widget-add" >
+  <div id = "error-container"></div>
   <div class="form-group">
     <label class="control-label col-sm-2" for="title-add">Nombre:</label>
     <div class="col-sm-10">
@@ -44,7 +45,21 @@
 
       },
       error: function (error) {
-        $("#main-container").load("widget-login.html");
+       // $("#main-container").load("widget-login.html");
+        $("#error-container").empty();
+        $("#error-container").append("<div id='errors' class='alert alert-danger'><ol id='error-list'></ol></div>")
+        if (error.responseJSON && error.responseJSON.error) {
+          error.responseJSON.error.forEach(err => {
+            if(err.msg) {
+              $("#error-list").append(`<li>${err.msg}</li>`);
+            }
+            else {
+              $("#error-list").append(`<li>${err}</li>`);
+            }
+          });
+        } else {
+          $("#error-list").append("<li>Error desconocido. Inténtalo de nuevo.</li>");
+        }
       }
     });
   }
