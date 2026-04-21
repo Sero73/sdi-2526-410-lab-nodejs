@@ -23,9 +23,7 @@ const Login = ({ onLogin }) => {
                 localStorage.setItem("token", data.token);
                 onLogin();
             })
-            .catch((err) => {
-                console.error("Error detectado:", err); // Esto te dirá el error real en la consola (F12)
-                setError("No se pudo conectar con el servidor");
+            .catch(() => {
                 localStorage.removeItem("token");
             });
     };
