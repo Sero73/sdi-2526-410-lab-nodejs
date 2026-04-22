@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CardComponent from "../components/CardComponent";
 import "../assets/MainPage.css"
-import AddSongForm from "./AddSongForm";
+import SongForm from "./SongForm";
 import SongDetails from "./SongDetails";
 const MainPage = () => {
     const [view, setView] = useState("songs");
@@ -27,7 +27,7 @@ const MainPage = () => {
                         onDeleted={() => setView("songs")}
                     />
                 )}
-                {view === "add" &&  <AddSongForm onSongAdded={() => setView("songs")} />}
+                {view === "add" &&  <SongForm onSongAdded={() => setView("songs")} />}
             </main>
             <Footer />
         </div>
