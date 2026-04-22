@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../services/ApiService.js";
 import "../assets/SongDetails.css";
 import Portada from "../assets/logo.svg";
+import SongToast from "./SongToast";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 const SongDetails = ({ songId, onBack, onDeleted }) => {
     const [song, setSong] = useState(null);
     const [error, setError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         if (!songId) return;
@@ -20,7 +24,7 @@ const SongDetails = ({ songId, onBack, onDeleted }) => {
     }, [songId]);
 
     const handleDelete = () => {
-        if (!window.confirm("¿Seguro que quieres eliminar esta canción?")) return;
+      setIsModalOpen(false);
 
         apiFetch(`http://localhost:8081/api/v1.0/songs/${songId}`, {
             method: "DELETE"
@@ -29,7 +33,11 @@ const SongDetails = ({ songId, onBack, onDeleted }) => {
                 if (onDeleted) onDeleted();
             })
             .catch(err => {
-                setError(err.message);
+                if (err.message === "UNAUTHORIZED" || err.message.includes("autorizado")) {
+                    setToastMessage("No puedes borrar una canción que no es tuya");
+                } else {
+                    setToastMessage(err.message);
+                }
             });
     };
 
@@ -38,6 +46,17 @@ const SongDetails = ({ songId, onBack, onDeleted }) => {
 
     return (
         <div className="song-details">
+            <SongToast
+                message={toastMessage}
+                onClose={() => setToastMessage("")}
+            />
+
+            <DeleteConfirmationModal
+                isOpen={isModalOpen}
+                songName={song.title}
+                onConfirm={handleDelete}
+                onCancel={() => setIsModalOpen(false)}
+            />
 
             <img src={Portada} alt="Portada de la canción" />
 
@@ -49,7 +68,7 @@ const SongDetails = ({ songId, onBack, onDeleted }) => {
                 <p className="precio">{song.price} €</p>
 
                 <div className="song-actions">
-                    <button className="delete" onClick={handleDelete}>
+                    <button className="delete" onClick={() => setIsModalOpen(true)}>
                         Eliminar
                     </button>
 
